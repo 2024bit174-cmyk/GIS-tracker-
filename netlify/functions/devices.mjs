@@ -9,7 +9,7 @@
    explicitly opted in ever reach this endpoint.
    ========================================================= */
 
-import { db, STALE_MS } from './_store.mjs';
+import { db, STALE_MS } from '../lib/store.mjs';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
