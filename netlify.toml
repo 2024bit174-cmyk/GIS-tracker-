@@ -1,0 +1,65 @@
+# =====================================================
+# GeoTrack Pro — Netlify configuration
+# =====================================================
+# Static front-end in /public
+# Serverless API in /netlify/functions
+# No external accounts required.
+# =====================================================
+
+[build]
+  publish   = "public"
+  functions = "netlify/functions"
+  command   = "npm install"
+
+[functions]
+  node_bundler = "esbuild"
+
+# -----------------------------------------------------
+# API ROUTES  — these MUST be declared before the SPA
+# catch-all below, because Netlify evaluates redirect
+# rules in the order they appear.
+# -----------------------------------------------------
+[[redirects]]
+  from   = "/api/devices"
+  to     = "/.netlify/functions/devices"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/ip-locate"
+  to     = "/.netlify/functions/ip-locate"
+  status = 200
+  force  = true
+
+# -----------------------------------------------------
+# SPA FALLBACK — keeps direct URLs and refreshes working.
+# Declared last so it never shadows /api/*.
+# -----------------------------------------------------
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# -----------------------------------------------------
+# SECURITY HEADERS
+# -----------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options           = "SAMEORIGIN"
+    X-Content-Type-Options    = "nosniff"
+    Referrer-Policy           = "strict-origin-when-cross-origin"
+    # Geolocation is permitted for this origin only.
+    # Browsers also require HTTPS — Netlify provides it automatically.
+    Permissions-Policy        = "geolocation=(self), camera=(), microphone=()"
+
+# The app shell and API must never be cached.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-store"

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeoTrack Pro — Real-Time GIS Tracking Platform</title>
+  <meta name="description" content="Real-time GIS location tracking platform supporting GPS, IP geolocation, cell tower triangulation, and live multi-device location sharing." />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ========================================================= HEADER -->
+  <header class="topbar" role="banner">
+    <div class="topbar-brand">
+      <div class="brand-icon"><i class="fas fa-satellite-dish"></i></div>
+      <div class="brand-text">
+        <span class="brand-name">GeoTrack <strong>Pro</strong></span>
+        <span class="brand-sub">Real-Time GIS Tracking Platform</span>
+      </div>
+    </div>
+
+    <nav class="topbar-status" aria-label="Connection status">
+      <div class="status-pill" id="pill-stream">
+        <span class="pill-dot"></span>
+        <span class="pill-label">Fleet</span>
+      </div>
+      <div class="status-pill" id="pill-firebase">
+        <span class="pill-dot"></span>
+        <span class="pill-label">Network</span>
+      </div>
+      <div class="status-pill" id="pill-gps">
+        <span class="pill-dot"></span>
+        <span class="pill-label">GPS</span>
+      </div>
+    </nav>
+
+    <div class="topbar-clock">
+      <div id="live-clock" class="clock-time">--:--:--</div>
+      <div id="live-date" class="clock-date">---</div>
+    </div>
+
+    <button class="hamburger" id="btn-panel-right" aria-label="Toggle data panel" aria-expanded="false">
+      <i class="fas fa-chart-simple"></i>
+    </button>
+
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <i class="fas fa-bars"></i>
+    </button>
+  </header>
+
+  <!-- ========================================================= MAIN -->
+  <main class="app-layout" role="main">
+
+    <!-- =========== LEFT SIDEBAR: CONTROLS =========== -->
+    <aside class="sidebar sidebar-left" id="sidebar-left" aria-label="Tracking controls">
+
+      <!-- MY DEVICE CARD -->
+      <div class="device-card" id="my-device-card">
+        <div class="device-card-header">
+          <div class="device-icon"><i class="fas fa-mobile-screen-button"></i></div>
+          <div class="device-info">
+            <div class="device-name">This Device</div>
+            <div class="device-id" id="my-device-id">ID: —</div>
+          </div>
+          <div class="device-status-badge" id="my-status-badge">offline</div>
+        </div>
+        <div class="device-coords" id="my-device-coords">
+          <div class="coord-row"><span class="coord-label">Lat</span><span class="coord-val" id="my-lat">—</span></div>
+          <div class="coord-row"><span class="coord-label">Lon</span><span class="coord-val" id="my-lon">—</span></div>
+          <div class="coord-row"><span class="coord-label">Accuracy</span><span class="coord-val" id="my-acc">—</span></div>
+          <div class="coord-row"><span class="coord-label">Updated</span><span class="coord-val" id="my-updated">—</span></div>
+        </div>
+      </div>
+
+      <!-- TRACKING METHOD -->
+      <section class="panel" aria-labelledby="label-step1">
+        <h2 class="panel-title" id="label-step1">
+          <span class="step-badge">1</span> Choose Tracking Method
+        </h2>
+        <div class="method-list" role="group" aria-label="Tracking methods">
+          <button class="method-btn" data-mode="ip" id="mode-ip" aria-pressed="false">
+            <span class="method-icon"><i class="fas fa-network-wired"></i></span>
+            <span class="method-body">
+              <strong>IP Address</strong>
+              <em>City-level · no permission required</em>
+            </span>
+          </button>
+          <button class="method-btn" data-mode="gps" id="mode-gps" aria-pressed="false">
+            <span class="method-icon"><i class="fas fa-location-crosshairs"></i></span>
+            <span class="method-body">
+              <strong>GPS / Device</strong>
+              <em>2–10 m · requires permission</em>
+            </span>
+          </button>
+          <button class="method-btn" data-mode="cell" id="mode-cell" aria-pressed="false">
+            <span class="method-icon"><i class="fas fa-tower-cell"></i></span>
+            <span class="method-body">
+              <strong>Cell Triangulation</strong>
+              <em>Works indoors · 120–1500 m</em>
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <!-- START / STOP -->
+      <section class="panel" aria-labelledby="label-step2">
+        <h2 class="panel-title" id="label-step2">
+          <span class="step-badge">2</span> Start Tracking
+        </h2>
+        <div class="btn-row">
+          <button class="btn btn-start" id="start" aria-label="Start tracking">
+            <i class="fas fa-play"></i> Start
+          </button>
+          <button class="btn btn-stop" id="stop" disabled aria-label="Stop tracking">
+            <i class="fas fa-stop"></i> Stop
+          </button>
+        </div>
+        <div class="share-toggle-row">
+          <label class="share-toggle" for="share-toggle">
+            <span><i class="fas fa-share-nodes"></i> Share location on network map</span>
+            <div class="toggle-sw">
+              <input type="checkbox" id="share-toggle" />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </div>
+          </label>
+          <p class="hint-text">When enabled, your GPS position is visible to other devices on the same session.</p>
+        </div>
+      </section>
+
+      <!-- CELL TOWERS -->
+      <section class="panel" aria-labelledby="label-towers">
+        <h2 class="panel-title" id="label-towers">
+          <span class="step-badge">3</span> Cell Tower Simulation
+        </h2>
+        <div class="slider-field">
+          <label>Towers used: <strong id="towerVal">3</strong></label>
+          <input type="range" id="towers" min="1" max="3" value="3" aria-label="Number of cell towers" />
+          <p class="hint-text" id="towerHint"></p>
+        </div>
+        <div class="slider-field">
+          <label>Geofence radius: <strong id="fenceVal">2500</strong> m</label>
+          <input type="range" id="fence" min="200" max="6000" step="100" value="2500" aria-label="Geofence radius in meters" />
+        </div>
+      </section>
+
+      <!-- PRIVACY -->
+      <section class="panel" aria-labelledby="label-privacy">
+        <h2 class="panel-title" id="label-privacy">
+          <i class="fas fa-shield-halved"></i> Privacy Safeguards
+        </h2>
+        <ul class="privacy-list" role="list">
+          <li><i class="fas fa-check"></i><span><strong>Consent</strong> — nothing collected until you press Start</span></li>
+          <li><i class="fas fa-check"></i><span><strong>Minimisation</strong> — coordinates live only in this tab</span></li>
+          <li><i class="fas fa-check"></i><span><strong>Precision control</strong> — coarse mode rounds to ±100 m</span></li>
+          <li><i class="fas fa-check"></i><span><strong>Retention</strong> — server stores no history</span></li>
+          <li><i class="fas fa-check"></i><span><strong>Transparency</strong> — every fix shown in the log</span></li>
+        </ul>
+        <label class="coarse-toggle" for="coarse">
+          <input type="checkbox" id="coarse" />
+          <span>Coarse mode (±100 m precision)</span>
+        </label>
+        <button class="btn btn-danger" id="clear" aria-label="Clear all tracking data">
+          <i class="fas fa-trash"></i> Clear All Tracking Data
+        </button>
+      </section>
+
+    </aside>
+
+    <!-- =========== MAP =========== -->
+    <section class="map-section" aria-label="Interactive map">
+      <!-- Map Toolbar -->
+      <div class="map-toolbar" role="toolbar" aria-label="Map controls">
+        <div class="toolbar-group">
+          <button class="tool-btn active" id="layer-osm" title="Standard map" aria-pressed="true">
+            <i class="fas fa-map"></i>
+          </button>
+          <button class="tool-btn" id="layer-satellite" title="Satellite" aria-pressed="false">
+            <i class="fas fa-satellite"></i>
+          </button>
+          <button class="tool-btn" id="layer-topo" title="Topographic" aria-pressed="false">
+            <i class="fas fa-mountain"></i>
+          </button>
+        </div>
+        <div class="cursor-coords" aria-live="polite" id="cursor-coords">
+          <i class="fas fa-crosshairs"></i> <span id="cursor-text">Move cursor over map…</span>
+        </div>
+        <div class="toolbar-group">
+          <button class="tool-btn" id="btn-locate" title="Go to my location">
+            <i class="fas fa-location-dot"></i>
+          </button>
+          <button class="tool-btn" id="btn-fit" title="Fit all markers">
+            <i class="fas fa-expand"></i>
+          </button>
+          <button class="tool-btn" id="btn-fs" title="Fullscreen">
+            <i class="fas fa-maximize"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- The Map -->
+      <div id="map" role="application" aria-label="GIS tracking map"></div>
+
+      <!-- Map Legend -->
+      <div class="map-legend" aria-label="Map legend" role="legend">
+        <div class="legend-title"><i class="fas fa-circle-nodes"></i> Legend</div>
+        <div class="legend-item"><span class="ldot" style="background:#f4a261"></span> IP Location</div>
+        <div class="legend-item"><span class="ldot" style="background:#2a9d8f"></span> GPS (this device)</div>
+        <div class="legend-item"><span class="ldot" style="background:#e76f51"></span> Cell triangulation</div>
+        <div class="legend-item"><span class="ldot" style="background:#4cc9f0"></span> Fleet vehicle</div>
+        <div class="legend-item"><span class="ldot" style="background:#9b5de5"></span> Other device</div>
+        <div class="legend-item"><span class="lline" style="background:#e63946"></span> Geofence</div>
+      </div>
+    </section>
+
+    <!-- =========== RIGHT SIDEBAR: DATA =========== -->
+    <aside class="sidebar sidebar-right" id="sidebar-right" aria-label="Tracking data">
+
+      <!-- CONNECTED DEVICES -->
+      <section class="panel" aria-labelledby="label-devices">
+        <h2 class="panel-title" id="label-devices">
+          <i class="fas fa-mobile-screen-button"></i> Connected Devices
+          <span class="device-count-badge" id="device-count">0</span>
+          <button class="panel-info-btn" id="btn-connect-help" title="How to connect another phone" aria-label="How to connect another phone">
+            <i class="fas fa-circle-info"></i>
+          </button>
+        </h2>
+        <div class="device-list" id="device-list" role="list">
+          <div class="empty-state">
+            <i class="fas fa-satellite"></i>
+            <p>No devices sharing location yet.</p>
+            <p class="hint-text">Enable "Share location on network map" and start GPS tracking.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIVE TARGETS TABLE -->
+      <section class="panel" aria-labelledby="label-targets">
+        <h2 class="panel-title" id="label-targets">
+          <i class="fas fa-crosshairs"></i> Live Targets
+        </h2>
+        <div class="targets-scroll">
+          <table class="targets-table" aria-label="Live tracking targets">
+            <thead>
+              <tr>
+                <th>Target</th>
+                <th>Method</th>
+                <th>Accuracy</th>
+                <th>Distance</th>
+              </tr>
+            </thead>
+            <tbody id="rows">
+              <tr><td colspan="4" class="empty-cell">Waiting for the live stream…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SESSION STATS -->
+      <section class="panel" aria-labelledby="label-stats">
+        <h2 class="panel-title" id="label-stats">
+          <i class="fas fa-gauge-high"></i> Session Statistics
+        </h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="statPoints">0</div>
+            <div class="stat-label">Position fixes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statDistance">0 m</div>
+            <div class="stat-label">Distance tracked</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statElapsed">00:00</div>
+            <div class="stat-label">Session time</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statOutside">0</div>
+            <div class="stat-label">Outside geofence</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ACCURACY CHART -->
+      <section class="panel" aria-labelledby="label-chart">
+        <h2 class="panel-title" id="label-chart">
+          <i class="fas fa-chart-bar"></i> Accuracy Comparison
+        </h2>
+        <div id="chart" class="accuracy-chart"></div>
+        <p class="hint-text">Log scale — compares accuracy of each tracking method.</p>
+      </section>
+
+      <!-- EVENT LOG -->
+      <section class="panel panel-log" aria-labelledby="label-log">
+        <h2 class="panel-title" id="label-log">
+          <i class="fas fa-terminal"></i> Event Log
+        </h2>
+        <div id="log" class="event-log" role="log" aria-live="polite" aria-label="Event log"></div>
+      </section>
+
+    </aside>
+
+  </main>
+
+  <!-- ========================================================= FOOTER -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-stat"><i class="fas fa-clock"></i> Session: <strong id="footer-time">00:00:00</strong></div>
+    <div class="footer-stat"><i class="fas fa-route"></i> Total: <strong id="footer-dist">0 m</strong></div>
+    <div class="footer-stat"><i class="fas fa-location-dot"></i> Fixes: <strong id="footer-fixes">0</strong></div>
+    <div class="footer-credit">GeoTrack Pro &nbsp;·&nbsp; MUST University GIS Assignment &nbsp;·&nbsp; 2026</div>
+  </footer>
+
+  <!-- ========================================================= CONNECT HELP MODAL -->
+  <div class="modal-backdrop" id="firebase-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="display:none;">
+    <div class="modal">
+      <div class="modal-icon"><i class="fas fa-mobile-screen-button"></i></div>
+      <h2 id="modal-title">Connect another phone</h2>
+      <ol class="modal-steps">
+        <li>Open this same website on the other phone.</li>
+        <li>Choose <strong>GPS / Device</strong> as the tracking method.</li>
+        <li>Turn on <strong>Share location on network map</strong>.</li>
+        <li>Press <strong>Start</strong> and allow location access.</li>
+      </ol>
+      <p class="hint-text">Each device gets its own colour and marker. Your own device is never drawn twice. Devices that stop sharing disappear automatically after 2 minutes.</p>
+      <button class="btn btn-start" id="modal-dismiss">Got it</button>
+    </div>
+  </div>
+
+  <!-- ========================================================= TOAST -->
+  <div class="toast-stack" id="toast-stack" aria-live="assertive" aria-atomic="false"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Firebase (loaded conditionally in firebase-config.js) -->
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

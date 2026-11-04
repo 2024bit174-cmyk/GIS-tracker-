@@ -1,0 +1,26 @@
+{
+  "name": "geotrack-pro",
+  "version": "2.0.0",
+  "description": "GeoTrack Pro - real-time GIS tracking platform with live multi-device location sharing",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node tests/api.test.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^11.1.7"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "gis",
+    "geolocation",
+    "leaflet",
+    "realtime",
+    "tracking"
+  ],
+  "author": "MUKUNZI ISMAIL",
+  "license": "MIT"
+}
