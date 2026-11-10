@@ -1,0 +1,19 @@
+# Flask artifacts
+__pycache__/
+*.pyc
+*.pyw
+
+# Database
+database.db
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# Batch files (local only)
+start.bat
+
+# Flask instance
+instance/
